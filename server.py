@@ -3,18 +3,8 @@ from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource, Api
 
 
-""" PYMONGO IMPORTS """
-from pymongo import MongoClient
-
-
-""" BSON IMPORTS """
-from bson.objectid import ObjectId
-
-
 """ FLASK BOILERPLATE """
 app = Flask(__name__)
-mongo = MongoClient('localhost', 27017)
-app.db = mongo.develop_database
 api = Api(app)
 
 
