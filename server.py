@@ -1,3 +1,7 @@
+""" GENERAL IMPORTS """
+from functools import wraps
+
+
 """ FLASK IMPORTS """
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Resource, Api
@@ -10,6 +14,26 @@ api = Api(app)
 
 """ LOCAL IMPORTS """
 from models import *
+
+
+""" DECORATORS """
+def require_auth(f):
+  @wraps(f)
+  def helper(*args, **kwargs):
+    auth = request.authorization
+    if not auth:
+      return ({'error': 'Basic Auth Required.'}, 401, None)
+    
+    try:
+      user = User(username=auth.username)
+    except:
+      return ({'error': 'Invalid Auth.'}, 401, None)
+    
+    if not user.compare_password(auth.password):
+      return ({'error': 'Invalid Auth.'}, 401, None)
+    
+    return f(*args, **kwargs)
+  return helper
 
 
 """ IMPLEMENT REST Resource """
@@ -28,19 +52,8 @@ class Users(Resource):
       'identifier': user.identifier()
     }
   
+  @require_auth
   def get(self):
-    auth = request.authorization
-    if not auth:
-      return ({'error': 'Basic Auth Required.'}, 401, None)
-    
-    try:
-      user = User(username=auth.username)
-    except:
-      return ({'error': 'Invalid Auth.'}, 401, None)
-    
-    if not user.compare_password(auth.password):
-      return ({'error': 'Invalid Auth.'}, 401, None)
-    
     return {}
 
 
