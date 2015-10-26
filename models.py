@@ -72,6 +72,10 @@ class User(DBModel):
     encodedpassword = password.encode('utf-8')
     hashed = bcrypt.hashpw(encodedpassword, bcrypt.gensalt(self.BCRYPT_ROUNDS))
     self.set('password', hashed)
-
+  
+  def compare_password(self, password):
+    encodedpassword = password.encode('utf-8')
+    print(self.get('password'))
+    return bcrypt.hashpw(encodedpassword, self.get('password')) == self.get('password')
   
   

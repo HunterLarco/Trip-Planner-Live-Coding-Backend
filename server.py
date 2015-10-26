@@ -27,6 +27,21 @@ class Users(Resource):
     return {
       'identifier': user.identifier()
     }
+  
+  def get(self):
+    auth = request.authorization
+    if not auth:
+      return ({'error': 'Basic Auth Required.'}, 401, None)
+    
+    try:
+      user = User(username=auth.username)
+    except:
+      return ({'error': 'Invalid Auth.'}, 401, None)
+    
+    if not user.compare_password(auth.password):
+      return ({'error': 'Invalid Auth.'}, 401, None)
+    
+    return {}
 
 
 """ ADD REST RESOURCE TO API """
