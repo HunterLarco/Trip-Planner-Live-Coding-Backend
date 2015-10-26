@@ -1,3 +1,7 @@
+""" ENCRYPTION IMPORTS """
+import bcrypt
+
+
 """ PYMONGO IMPORTS """
 from pymongo import MongoClient
 
@@ -57,9 +61,17 @@ class DBModel(object):
 
 class User(DBModel):
   
+  BCRYPT_ROUNDS = 12
+  
   def __init__(self, *args, username=None, **kwargs):
     super(User, self).__init__(*args, **kwargs)
     if username:
       self._load({'username': username})
+  
+  def set_password(self, password):
+    encodedpassword = password.encode('utf-8')
+    hashed = bcrypt.hashpw(encodedpassword, bcrypt.gensalt(self.BCRYPT_ROUNDS))
+    self.set('password', hashed)
+
   
   

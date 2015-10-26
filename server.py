@@ -8,16 +8,29 @@ app = Flask(__name__)
 api = Api(app)
 
 
+""" LOCAL IMPORTS """
+from models import *
+
+
 """ IMPLEMENT REST Resource """
-class MyObject(Resource):
-  def get(self):
+class Users(Resource):
+  def post(self):
+    json = request.json
+    if not 'username' in json or not 'password' in json or not json['username'] or not json['password']:
+      return ({'error': 'Request requires username and password'}, 400, None)
+    
+    user = User()
+    user.set('username', json['username'])
+    user.set_password(json['password'])
+    user.save()
+    
     return {
-      'test': 7*6
+      'identifier': user.identifier()
     }
 
 
 """ ADD REST RESOURCE TO API """
-api.add_resource(MyObject, '/myobject/')
+api.add_resource(Users, '/users/')
 
 
 """ API RESPONSE ENCODING """
