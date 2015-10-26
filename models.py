@@ -11,23 +11,20 @@ db = mongo.develop_database
 from bson.objectid import ObjectId
 
 
-class User(object):
+class DBModel(object):
   
-  def __init__(self, identifier=None, username=None):
+  def __init__(self, identifier=None):
+    self.is_saved = False
     if identifier:
       self._load({'_id': ObjectId(identifier)})
-      self.is_saved = True
-    elif username:
-      self._load({'username': username})
-      self.is_saved = True
     else:
       self.data = {}
-      self.is_saved = False
   
   def _load(self, query):
     user_collection = db.users
     user = user_collection.find_one(query)
     if not user: raise ValueError('User does not exist')
+    self.is_saved = True
     self.data = user
   
   def save(self):
@@ -46,3 +43,23 @@ class User(object):
     user_collection = db.users
     user = user_collection.insert_one(self.data)
     self.is_saved = True
+  
+  def set(self, key, value):
+    self.data[key] = value
+  
+  def get(self, key):
+    return self.data[key]
+  
+  def identifier(self):
+    return str(self.get('_id'))
+
+
+
+class User(DBModel):
+  
+  def __init__(self, *args, username=None, **kwargs):
+    super(User, self).__init__(*args, **kwargs)
+    if username:
+      self._load({'username': username})
+  
+  
