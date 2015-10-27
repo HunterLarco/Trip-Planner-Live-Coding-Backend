@@ -17,22 +17,28 @@ from bson.objectid import ObjectId
 
 class DBModel(object):
   
-  def __init__(self, identifier=None):
+  def __init__(self, identifier=None, rawdata=None):
     self.is_saved = False
     if identifier:
-      self._load({'_id': ObjectId(identifier)})
+      self._queryload({'_id': ObjectId(identifier)})
+    elif rawdata:
+      self._rawload(rawdata)
     else:
       self.data = {}
   
-  def _load(self, query):
+  def _rawload(self, data):
+    self.is_saved = True
+    self.data = data
+  
+  def _queryload(self, query):
     collection = self._collection()
     entity = collection.find_one(query)
     if not entity: raise ValueError('Entity does not exist')
-    self.is_saved = True
-    self.data = entity
+    self._rawload(entity)
   
-  def _collection(self):
-    return db[self.__class__.__name__]
+  @classmethod
+  def _collection(cls):
+    return db[cls.__name__]
   
   def save(self):
     if self.is_saved: self._update()
@@ -60,6 +66,12 @@ class DBModel(object):
   
   def identifier(self):
     return str(self.get('_id'))
+  
+  @classmethod
+  def fetch(cls, query):
+    collection = cls._collection()
+    entities = collection.find(query)
+    return [cls(rawdata=entity) for entity in entities]
 
 
 class User(DBModel):
@@ -69,7 +81,7 @@ class User(DBModel):
   def __init__(self, *args, username=None, **kwargs):
     super(User, self).__init__(*args, **kwargs)
     if username:
-      self._load({'username': username})
+      self._queryload({'username': username})
   
   def set_password(self, password):
     encodedpassword = password.encode('utf-8')
@@ -83,11 +95,9 @@ class User(DBModel):
   
   def save(self):
     if not self.is_saved:
-      try:
-        user = User(username = self.get('username'))
+      query = self.fetch({'username': self.get('username')})
+      if len(query) > 0:
         return False
-      except:
-        pass
     return super(User, self).save()
   
   
