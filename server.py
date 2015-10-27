@@ -46,7 +46,10 @@ class Users(Resource):
     user = User()
     user.set('username', json['username'])
     user.set_password(json['password'])
-    user.save()
+    was_saved = user.save()
+    
+    if not was_saved:
+      return ({'error': 'Username already in use'}, 400, None)
     
     return {
       'identifier': user.identifier()

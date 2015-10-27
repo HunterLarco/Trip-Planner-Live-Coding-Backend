@@ -25,27 +25,31 @@ class DBModel(object):
       self.data = {}
   
   def _load(self, query):
-    user_collection = db.users
-    user = user_collection.find_one(query)
-    if not user: raise ValueError('User does not exist')
+    collection = self._collection()
+    entity = collection.find_one(query)
+    if not entity: raise ValueError('Entity does not exist')
     self.is_saved = True
-    self.data = user
+    self.data = entity
+  
+  def _collection(self):
+    return db[self.__class__.__name__]
   
   def save(self):
     if self.is_saved: self._update()
     else: self._insert()
+    return True
   
   def _update(self):
-    user_collection = db.users
-    user = user_collection.update_one({
+    collection = self._collection()
+    entity = collection.update_one({
       '_id': self.data['_id']
     }, {
       '$set': self.data
     })
   
   def _insert(self):
-    user_collection = db.users
-    user = user_collection.insert_one(self.data)
+    collection = self._collection()
+    entity = collection.insert_one(self.data)
     self.is_saved = True
   
   def set(self, key, value):
@@ -56,7 +60,6 @@ class DBModel(object):
   
   def identifier(self):
     return str(self.get('_id'))
-
 
 
 class User(DBModel):
@@ -77,5 +80,14 @@ class User(DBModel):
     encodedpassword = password.encode('utf-8')
     print(self.get('password'))
     return bcrypt.hashpw(encodedpassword, self.get('password')) == self.get('password')
+  
+  def save(self):
+    if not self.is_saved:
+      try:
+        user = User(username = self.get('username'))
+        return False
+      except:
+        pass
+    return super(User, self).save()
   
   
