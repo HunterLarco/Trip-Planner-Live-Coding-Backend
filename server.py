@@ -36,16 +36,29 @@ def require_auth(f):
   return helper
 
 
+def params(*params):
+  def decorator(f):
+    def helper(*args, **kwarg):
+      json = request.json
+      
+      for param in params:
+        if not param in json or not json[param]:
+          return ({'error': 'Request requires username and password'}, 400, None)
+        kwargs[param] = json[param]
+      
+      return f(*args, **kwargs)
+  
+  return decorator
+
+
 """ IMPLEMENT REST Resource """
 class Users(Resource):
-  def post(self):
-    json = request.json
-    if not 'username' in json or not 'password' in json or not json['username'] or not json['password']:
-      return ({'error': 'Request requires username and password'}, 400, None)
-    
+  
+  @params('username', 'password')
+  def post(self, username=None, password=None):
     user = User()
-    user.set('username', json['username'])
-    user.set_password(json['password'])
+    user.set('username', username)
+    user.set_password(password)
     was_saved = user.save()
     
     if not was_saved:

@@ -90,7 +90,6 @@ class User(DBModel):
   
   def compare_password(self, password):
     encodedpassword = password.encode('utf-8')
-    print(self.get('password'))
     return bcrypt.hashpw(encodedpassword, self.get('password')) == self.get('password')
   
   def save(self):
@@ -99,5 +98,3 @@ class User(DBModel):
       if len(query) > 0:
         return False
     return super(User, self).save()
-  
-  
