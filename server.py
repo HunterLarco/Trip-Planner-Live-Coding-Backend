@@ -17,7 +17,17 @@ from models import *
 
 
 """ DECORATORS """
+
 def require_auth(f):
+  """
+  ' PURPOSE
+  '   Forces basic authorization for a given resource.
+  '   Users based on the User class from models.py
+  ' PARAMETERS
+  '   <function f>
+  ' RETURNS
+  '   <function helper>
+  """
   @wraps(f)
   def helper(*args, **kwargs):
     auth = request.authorization
@@ -37,6 +47,18 @@ def require_auth(f):
 
 
 def params(*params):
+  """
+  ' PURPOSE
+  '   When appended to a resource method, requires that the provided
+  '   parameters are included in the json request.
+  ' PARAMETERS
+  '   <str param1>
+  '   <str param2>
+  '   ...
+  '   <str paramN>
+  ' RETURNS
+  '   <function decorator>
+  """
   def decorator(f):
     def helper(*args, **kwarg):
       json = request.json
